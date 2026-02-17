@@ -28,6 +28,18 @@
       <h2>추첨 기록</h2>
       <ul id="historyList"></ul>
     </div>
+
+    <div class="inquiry-section">
+      <h2>제휴 문의</h2>
+      <p class="inquiry-desc">제휴 및 협업 관련 문의를 남겨주세요.</p>
+      <form action="https://formspree.io/f/xojnwyva" method="POST" class="inquiry-form">
+        <input type="text" name="name" placeholder="이름 / 회사명" required />
+        <input type="email" name="email" placeholder="이메일" required />
+        <input type="text" name="phone" placeholder="연락처" />
+        <textarea name="message" placeholder="문의 내용을 입력해주세요." rows="4" required></textarea>
+        <button type="submit" class="submit-btn">문의 보내기</button>
+      </form>
+    </div>
   </div>
 
   <script defer type="text/javascript" src="/main.js"></script>

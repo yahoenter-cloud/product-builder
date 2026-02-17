@@ -167,3 +167,65 @@ button:disabled {
   color: #555;
   font-weight: 700;
 }
+
+/* 제휴 문의 폼 */
+.inquiry-section {
+  margin-top: 60px;
+  padding-top: 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.inquiry-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+
+.inquiry-desc {
+  color: #aaa;
+  font-size: 0.95rem;
+  margin-bottom: 24px;
+}
+
+.inquiry-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inquiry-form input,
+.inquiry-form textarea {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.inquiry-form input::placeholder,
+.inquiry-form textarea::placeholder {
+  color: #777;
+}
+
+.inquiry-form input:focus,
+.inquiry-form textarea:focus {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.inquiry-form textarea {
+  resize: vertical;
+}
+
+.submit-btn {
+  background: linear-gradient(145deg, #0097e6, #0078b8);
+  box-shadow: 0 4px 16px rgba(0, 151, 230, 0.4);
+  margin-top: 4px;
+}
+
+.submit-btn:hover {
+  box-shadow: 0 6px 24px rgba(0, 151, 230, 0.6);
+}
