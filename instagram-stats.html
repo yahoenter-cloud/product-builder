@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Instagram Reels 분석기</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ig-start: #f09433;
+      --ig-mid1: #e6683c;
+      --ig-mid2: #dc2743;
+      --ig-mid3: #cc2366;
+      --ig-end: #bc1888;
+      --bg: #0d0d0d;
+      --card: #1a1a1a;
+      --card2: #222;
+      --border: #333;
+      --text: #fff;
+      --text2: #aaa;
+      --text3: #666;
+      --radius: 16px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 28px 20px 20px;
+    }
+    .logo-icon {
+      width: 44px; height: 44px;
+      background: linear-gradient(45deg, var(--ig-start), var(--ig-mid2), var(--ig-end));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--ig-start), var(--ig-mid2), var(--ig-end));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 20px 24px;
+    }
+    .tab-btn {
+      padding: 9px 22px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .tab-btn.active {
+      background: linear-gradient(45deg, var(--ig-mid2), var(--ig-end));
+      border-color: transparent;
+      color: #fff;
+      font-weight: 600;
+    }
+    .tab-btn:hover:not(.active) {
+      border-color: #555;
+      color: var(--text);
+    }
+
+    /* ── Main container ── */
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .card-desc {
+      font-size: 0.85rem;
+      color: var(--text2);
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    /* ── Input Group ── */
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .input-group input {
+      flex: 1;
+      padding: 12px 16px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .input-group input:focus { border-color: var(--ig-mid2); }
+    .input-group input::placeholder { color: var(--text3); }
+
+    .btn {
+      padding: 12px 22px;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: linear-gradient(45deg, var(--ig-mid1), var(--ig-mid2), var(--ig-end));
+      color: #fff;
+    }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-secondary {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-secondary:hover { border-color: #555; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+    /* ── Token input ── */
+    .token-section { margin-top: 14px; }
+    .token-label {
+      font-size: 0.82rem;
+      color: var(--text2);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .token-label a {
+      color: #7eb8f7;
+      text-decoration: none;
+      font-size: 0.8rem;
+    }
+    .token-label a:hover { text-decoration: underline; }
+
+    .token-input-wrap {
+      position: relative;
+    }
+    .token-input-wrap input {
+      width: 100%;
+      padding: 11px 40px 11px 14px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+      font-family: monospace;
+      transition: border-color .2s;
+    }
+    .token-input-wrap input:focus { border-color: var(--ig-mid2); }
+    .token-input-wrap input::placeholder { color: var(--text3); font-family: -apple-system, sans-serif; }
+    .toggle-token {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: var(--text3); cursor: pointer; font-size: 0.85rem;
+    }
+
+    /* ── Info Box ── */
+    .info-box {
+      background: rgba(120,80,200,0.12);
+      border: 1px solid rgba(180,100,255,0.25);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 14px;
+    }
+    .info-box .info-title {
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: #c090ff;
+      margin-bottom: 8px;
+    }
+    .info-box ol {
+      padding-left: 18px;
+      font-size: 0.8rem;
+      color: var(--text2);
+      line-height: 1.8;
+    }
+    .info-box a { color: #7eb8f7; text-decoration: none; }
+    .info-box a:hover { text-decoration: underline; }
+
+    /* ── Warning Box ── */
+    .warn-box {
+      background: rgba(220,39,67,0.1);
+      border: 1px solid rgba(220,39,67,0.3);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 0.82rem;
+      color: #f08090;
+      line-height: 1.5;
+      margin-top: 14px;
+    }
+
+    /* ── Demo badge ── */
+    .demo-badge {
+      display: inline-block;
+      background: linear-gradient(90deg, #f09433, #e6683c);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 100px;
+      margin-left: 8px;
+      vertical-align: middle;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Loading ── */
+    #loading {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 40px 0;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--ig-mid2);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading p { color: var(--text2); font-size: 0.9rem; }
+
+    /* ── Results ── */
+    #results { display: none; }
+
+    /* Profile */
+    .profile-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .profile-avatar {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, var(--ig-start), var(--ig-end));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-info .username {
+      font-size: 1.15rem; font-weight: 700;
+    }
+    .profile-info .fullname {
+      font-size: 0.85rem; color: var(--text2); margin-top: 2px;
+    }
+
+    /* Summary Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-card .stat-icon {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+    .stat-card .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--ig-mid1), var(--ig-end));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+    }
+    .stat-card .stat-label {
+      font-size: 0.8rem;
+      color: var(--text2);
+      margin-top: 4px;
+    }
+
+    /* Reels Grid */
+    .section-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text2);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .reels-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    @media (max-width: 480px) {
+      .reels-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .reel-card {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 9/16;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .reel-thumbnail {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .reel-thumbnail img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    .reel-placeholder-icon {
+      font-size: 2rem;
+      opacity: 0.3;
+    }
+    .reel-overlay {
+      position: relative;
+      z-index: 2;
+      background: linear-gradient(transparent, rgba(0,0,0,0.85));
+      padding: 8px 6px 6px;
+    }
+    .reel-stat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+    .reel-stat-icon { font-size: 0.7rem; }
+    .reel-rank {
+      position: absolute; top: 6px; left: 6px;
+      z-index: 3;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 100px;
+    }
+
+    /* Error */
+    .error-box {
+      background: rgba(220,39,67,0.1);
+      border: 1px solid rgba(220,39,67,0.35);
+      border-radius: 12px;
+      padding: 16px 20px;
+      color: #f88;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      margin-top: 16px;
+    }
+    .error-box strong { display: block; margin-bottom: 4px; }
+
+    /* Panel visibility */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 18px 0;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 30px 20px 10px;
+      color: var(--text3);
+      font-size: 0.78rem;
+      line-height: 1.6;
+    }
+
+    /* Responsive */
+    @media (max-width: 560px) {
+      .input-group { flex-direction: column; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo-icon">▶</div>
+    <h1>Reels 분석기</h1>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('live')">내 계정 연동</button>
+    <button class="tab-btn" onclick="switchTab('demo')">데모 보기</button>
+  </div>
+
+  <div class="container">
+
+    <!-- ── LIVE TAB ── -->
+    <div id="tab-live" class="tab-panel active">
+
+      <div class="card">
+        <div class="card-title">계정 분석</div>
+        <div class="card-desc">Instagram 계정 URL 또는 사용자명을 입력하세요.</div>
+
+        <div class="input-group">
+          <input type="text" id="accountInput" placeholder="@username 또는 instagram.com/username"
+            oninput="parseUsername(this.value)" />
+          <button class="btn btn-primary" id="analyzeBtn" onclick="startAnalysis()">분석</button>
+        </div>
+
+        <div class="token-section">
+          <div class="token-label">
+            Instagram 액세스 토큰
+            <a href="#" onclick="showTokenGuide(); return false;">토큰 발급 방법 ↗</a>
+          </div>
+          <div class="token-input-wrap">
+            <input type="password" id="tokenInput" placeholder="EAAG... 형식의 액세스 토큰 붙여넣기" />
+            <button class="toggle-token" onclick="toggleToken()">표시</button>
+          </div>
+        </div>
+
+        <div class="warn-box">
+          ⚠️ Instagram 공식 API는 <strong>비즈니스 / 크리에이터 계정</strong>만 지원합니다. 개인 계정이나 타인 계정의 조회수는 공식적으로 조회할 수 없습니다. 아래 <em>데모 보기</em>에서 UI를 미리 확인할 수 있습니다.
+        </div>
+
+        <div id="tokenGuide" style="display:none">
+          <div class="info-box">
+            <div class="info-title">📋 액세스 토큰 발급 방법</div>
+            <ol>
+              <li>Instagram 계정을 <strong>비즈니스 또는 크리에이터 계정</strong>으로 전환</li>
+              <li><a href="https://developers.facebook.com" target="_blank">Meta for Developers</a>에서 앱 생성</li>
+              <li>앱에 <strong>Instagram Graph API</strong> 제품 추가</li>
+              <li><a href="https://developers.facebook.com/tools/explorer/" target="_blank">Graph API Explorer</a>에서 권한 설정:<br>
+                <code style="font-size:0.78rem;color:#c0a0ff">instagram_basic, instagram_manage_insights, pages_show_list</code>
+              </li>
+              <li>Generate Access Token 클릭 후 복사</li>
+              <li>위 입력창에 붙여넣기 후 <strong>분석</strong> 클릭</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div id="loading" style="display:none; flex-direction:column; align-items:center; gap:14px; padding:40px 0">
+        <div class="spinner"></div>
+        <p>릴스 데이터를 불러오는 중...</p>
+      </div>
+
+      <!-- Error -->
+      <div id="errorBox" class="error-box" style="display:none"></div>
+
+      <!-- Results -->
+      <div id="results" style="display:none"></div>
+
+    </div>
+
+    <!-- ── DEMO TAB ── -->
+    <div id="tab-demo" class="tab-panel">
+      <div class="card">
+        <div class="card-title">데모 미리보기 <span class="demo-badge">DEMO</span></div>
+        <div class="card-desc">실제 API 연동 시 이런 화면이 표시됩니다. 아래 데이터는 예시입니다.</div>
+        <button class="btn btn-primary" onclick="showDemo()" style="width:100%">데모 실행</button>
+      </div>
+      <div id="demoResults"></div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Instagram Graph API 기반 · 공식 API만 사용<br>
+    타인 계정 조회는 API 정책상 불가
+  </div>
+
+<script>
+  /* ── State ── */
+  let parsedUsername = '';
+  let tokenVisible = false;
+
+  /* ── Tab switch ── */
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', (i === 0) === (tab === 'live'));
+    });
+    document.getElementById('tab-live').classList.toggle('active', tab === 'live');
+    document.getElementById('tab-demo').classList.toggle('active', tab === 'demo');
+  }
+
+  /* ── Parse username from URL ── */
+  function parseUsername(val) {
+    let username = val.trim();
+    try {
+      const url = new URL(username.startsWith('http') ? username : 'https://' + username);
+      if (url.hostname.includes('instagram.com')) {
+        username = url.pathname.replace(/\//g, '').replace(/@/g, '');
+      }
+    } catch {}
+    username = username.replace(/^@/, '').replace(/instagram\.com\//i, '');
+    parsedUsername = username;
+  }
+
+  /* ── Toggle token visibility ── */
+  function toggleToken() {
+    tokenVisible = !tokenVisible;
+    const inp = document.getElementById('tokenInput');
+    inp.type = tokenVisible ? 'text' : 'password';
+    document.querySelector('.toggle-token').textContent = tokenVisible ? '숨김' : '표시';
+  }
+
+  /* ── Toggle guide ── */
+  function showTokenGuide() {
+    const el = document.getElementById('tokenGuide');
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+
+  /* ── Format numbers ── */
+  function fmt(n) {
+    if (!n && n !== 0) return '-';
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+    if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+    return n.toLocaleString();
+  }
+
+  /* ── Render results HTML ── */
+  function buildResultsHTML(profile, reels, isDemo) {
+    const avgViews = Math.round(reels.reduce((s, r) => s + (r.views || 0), 0) / reels.length);
+    const avgLikes = Math.round(reels.reduce((s, r) => s + (r.likes || 0), 0) / reels.length);
+
+    const reelsCards = reels.map((r, i) => `
+      <div class="reel-card">
+        <div class="reel-thumbnail">
+          ${r.thumbnail
+            ? `<img src="${r.thumbnail}" alt="릴스 ${i+1}" onerror="this.style.display='none'">`
+            : `<div class="reel-placeholder-icon">▶</div>`}
+        </div>
+        <span class="reel-rank">#${i + 1}</span>
+        <div class="reel-overlay">
+          <div class="reel-stat"><span class="reel-stat-icon">▶</span>${fmt(r.views)}</div>
+          <div class="reel-stat"><span class="reel-stat-icon">♡</span>${fmt(r.likes)}</div>
+        </div>
+      </div>
+    `).join('');
+
+    const initials = (profile.username || profile.name || '?').charAt(0).toUpperCase();
+
+    return `
+      <div class="card">
+        ${isDemo ? '<div style="text-align:right;margin-bottom:12px"><span class="demo-badge">DEMO 데이터</span></div>' : ''}
+        <div class="profile-row">
+          <div class="profile-avatar">
+            ${profile.pic
+              ? `<img src="${profile.pic}" alt="프로필" onerror="this.style.display='none'">`
+              : initials}
+          </div>
+          <div class="profile-info">
+            <div class="username">@${profile.username || 'unknown'}</div>
+            <div class="fullname">${profile.name || ''}</div>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">▶</div>
+            <div class="stat-value">${fmt(avgViews)}</div>
+            <div class="stat-label">평균 조회수 (최근 ${reels.length}개 릴스)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">♡</div>
+            <div class="stat-value">${fmt(avgLikes)}</div>
+            <div class="stat-label">평균 좋아요 (최근 ${reels.length}개 릴스)</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="section-label">최근 ${reels.length}개 릴스</div>
+        <div class="reels-grid">${reelsCards}</div>
+      </div>
+    `;
+  }
+
+  /* ── Demo data ── */
+  const DEMO_REELS = [
+    { views: 312400, likes: 22100 },
+    { views: 234100, likes: 15230 },
+    { views: 178900, likes: 11450 },
+    { views: 156700, likes: 9870  },
+    { views: 125430, likes: 8920  },
+    { views: 89750,  likes: 6340  },
+    { views: 67890,  likes: 4120  },
+    { views: 45230,  likes: 3100  },
+  ];
+  const DEMO_PROFILE = { username: 'travel_creator_kr', name: '여행 크리에이터' };
+
+  function showDemo() {
+    document.getElementById('demoResults').innerHTML =
+      buildResultsHTML(DEMO_PROFILE, DEMO_REELS, true);
+  }
+
+  /* ── Real API analysis ── */
+  async function startAnalysis() {
+    const token = document.getElementById('tokenInput').value.trim();
+    const input = document.getElementById('accountInput').value.trim();
+
+    if (!input) { showError('계정 URL 또는 사용자명을 입력해주세요.'); return; }
+    if (!token) { showError('액세스 토큰을 입력해주세요.\n토큰 발급 방법을 참고하세요.'); return; }
+
+    setLoading(true);
+    hideError();
+    document.getElementById('results').style.display = 'none';
+
+    try {
+      /* 1. Get user info */
+      const userRes = await apiFetch(
+        `https://graph.instagram.com/me?fields=id,username,name,profile_picture_url&access_token=${token}`
+      );
+
+      /* 2. Get media list (try /reels first, fallback to /media) */
+      let reels = [];
+      try {
+        const reelsRes = await apiFetch(
+          `https://graph.instagram.com/${userRes.id}/reels?fields=id,timestamp,like_count,thumbnail_url,permalink&limit=8&access_token=${token}`
+        );
+        reels = (reelsRes.data || []).slice(0, 8);
+      } catch {
+        /* fallback: /media filtered by VIDEO type */
+        const mediaRes = await apiFetch(
+          `https://graph.instagram.com/${userRes.id}/media?fields=id,media_type,timestamp,like_count,thumbnail_url,permalink&limit=50&access_token=${token}`
+        );
+        reels = (mediaRes.data || [])
+          .filter(m => m.media_type === 'VIDEO' || m.media_type === 'REELS')
+          .slice(0, 8);
+      }
+
+      if (reels.length === 0) {
+        throw new Error('최근 릴스를 찾을 수 없습니다. 비즈니스/크리에이터 계정인지 확인해주세요.');
+      }
+
+      /* 3. Get insights (plays = view count) for each reel */
+      const reelsWithStats = await Promise.all(reels.map(async (reel) => {
+        let views = 0;
+        try {
+          const ins = await apiFetch(
+            `https://graph.instagram.com/${reel.id}/insights?metric=plays&access_token=${token}`
+          );
+          views = ins.data?.find(m => m.name === 'plays')?.values?.[0]?.value ?? 0;
+        } catch { /* insights may not be available */ }
+        return {
+          views,
+          likes: reel.like_count || 0,
+          thumbnail: reel.thumbnail_url || '',
+        };
+      }));
+
+      const profile = {
+        username: userRes.username || parsedUsername,
+        name: userRes.name || '',
+        pic: userRes.profile_picture_url || '',
+      };
+
+      const html = buildResultsHTML(profile, reelsWithStats, false);
+      document.getElementById('results').innerHTML = html;
+      document.getElementById('results').style.display = 'block';
+
+    } catch (err) {
+      showError(err.message || '알 수 없는 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /* ── API fetch helper ── */
+  async function apiFetch(url) {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error) throw new Error(`API 오류: ${data.error.message}`);
+    return data;
+  }
+
+  /* ── UI helpers ── */
+  function setLoading(on) {
+    document.getElementById('loading').style.display = on ? 'flex' : 'none';
+    document.getElementById('analyzeBtn').disabled = on;
+  }
+  function showError(msg) {
+    const el = document.getElementById('errorBox');
+    el.innerHTML = `<strong>오류</strong>${msg.replace(/\n/g, '<br>')}`;
+    el.style.display = 'block';
+  }
+  function hideError() {
+    document.getElementById('errorBox').style.display = 'none';
+  }
+
+  /* ── Enter key ── */
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && document.getElementById('tab-live').classList.contains('active')) {
+      startAnalysis();
+    }
+  });
+</script>
+
+</body>
+</html>
